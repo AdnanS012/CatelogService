@@ -103,6 +103,17 @@ public class MenuItemsControllerTest {
                .andExpect(jsonPath("$.description").value("Delicious beef burger"))
                .andExpect(jsonPath("$.price").value(5.99));
    }
+    @Test
+    public void testGetMenuItemForNonExistentRestaurant() throws Exception {
+        Long restaurantId = 999L;
+        Long menuItemId = 1L;
+
+        BDDMockito.given(menuItemServiceImpl.getMenuItemById(restaurantId, menuItemId))
+                .willReturn(Optional.empty());
+
+        mockMvc.perform(get("/restaurants/{restaurantId}/menu-items/{menuItemId}", restaurantId, menuItemId))
+                .andExpect(status().isNotFound());
+    }
 
     @Test
     public void testCreateMenuItemOfRestaurant() throws Exception {
@@ -121,6 +132,29 @@ public class MenuItemsControllerTest {
                 .andExpect(jsonPath("$.description").value("Delicious beef burger"))
                 .andExpect(jsonPath("$.price").value(5.99))
                 .andExpect(jsonPath("$.restaurantId").value(restaurantId));
+    }
+    @Test
+    public void testCreateMenuItemWithInvalidData() throws Exception {
+        Long restaurantId = 1L;
+        MenuItemDTO invalidMenuItemDTO = new MenuItemDTO(null, "", "Invalid item", BigDecimal.valueOf(-1), restaurantId);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/restaurants/{restaurantId}/menu-items", restaurantId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(invalidMenuItemDTO)))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void testCreateMenuItemForNonExistentRestaurant() throws Exception {
+        Long restaurantId = 999L;
+        MenuItemDTO menuItemDTO = new MenuItemDTO(null, "Burger", "Delicious beef burger", BigDecimal.valueOf(5.99), restaurantId);
+
+        BDDMockito.given(menuItemServiceImpl.createMenuItem(ArgumentMatchers.any(MenuItemDTO.class), eq(restaurantId)))
+                .willThrow(new IllegalArgumentException("Restaurant not found"));
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/restaurants/{restaurantId}/menu-items", restaurantId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(menuItemDTO)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -166,6 +200,19 @@ public class MenuItemsControllerTest {
         mockMvc.perform(delete("/restaurants/{restaurantId}/menu-items/{menuItemId}", restaurantId, menuItemId))
                 .andExpect(status().isNotFound()); // Expect HTTP 404 Not Found
     }
+    @Test
+    public void testDeleteMenuItemForNonExistentRestaurant() throws Exception {
+        Long restaurantId = 999L;
+        Long menuItemId = 1L;
+
+        doThrow(new ResourceNotFoundException("Restaurant not found"))
+                .when(menuItemServiceImpl).deleteMenuItem(restaurantId, menuItemId);
+
+        mockMvc.perform(delete("/restaurants/{restaurantId}/menu-items/{menuItemId}", restaurantId, menuItemId))
+                .andExpect(status().isNotFound());
+    }
+
+
 
 
 

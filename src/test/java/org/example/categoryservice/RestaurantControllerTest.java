@@ -65,6 +65,11 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$.contact").value("+124567654"))
                 .andExpect(jsonPath("$.description").value("Description"));
     }
+    @Test
+    public void testGetRestaurantWithInvalidId() throws Exception {
+        mockMvc.perform(get("/restaurants/invalid_id"))
+                .andExpect(status().isBadRequest());
+    }
 
     @Test
     public void testCreateRestaurant() throws Exception {
@@ -93,6 +98,20 @@ public class RestaurantControllerTest {
 
     }
     @Test
+    public void testCreateRestaurantWithExistingNameAndAddress() throws Exception {
+        RestaurantDTO restaurantDTO = new RestaurantDTO(null, "KFC", "New York", "Fast Food", "+124567654", "Description");
+
+        given(restaurantService.createRestaurant(any(RestaurantDTO.class)))
+                .willThrow(new IllegalArgumentException("Restaurant with the same name and address already exists"));
+
+        mockMvc.perform(post("/restaurants")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(restaurantDTO)))
+                .andExpect(status().isBadRequest());
+    }
+
+
+    @Test
     public void testUpdateRestaurant() throws Exception {
         // Given: An existing restaurant and updated details
         RestaurantDTO updatedRestaurant = new RestaurantDTO(1L, "McDonald's", "Los Angeles", "Fast Food", "+123456789", "Updated Description");
@@ -112,7 +131,16 @@ public class RestaurantControllerTest {
                 .andExpect(jsonPath("$.contact").value("+123456789"))
                 .andExpect(jsonPath("$.description").value("Updated Description"));
     }
+    @Test
+    public void testUpdateRestaurantWithInvalidData() throws Exception {
+        Long restaurantId = 1L;
+        RestaurantDTO invalidRestaurantDTO = new RestaurantDTO(restaurantId, "", "New York", "Fast Food", "invalid_contact", "Description");
 
+        mockMvc.perform(put("/restaurants/{id}", restaurantId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(invalidRestaurantDTO)))
+                .andExpect(status().isBadRequest());
+    }
 
     @Test
     public void testUpdateRestaurant1() throws Exception {
@@ -148,7 +176,11 @@ public class RestaurantControllerTest {
                 .andExpect(status().isNoContent()); // HTTP 204
 
     }
-
+    @Test
+    public void testDeleteRestaurantWithInvalidId() throws Exception {
+        mockMvc.perform(delete("/restaurants/invalid_id"))
+                .andExpect(status().isBadRequest());
+    }
 
 }
 
