@@ -5,6 +5,7 @@ import org.example.categoryservice.Models.MenuItem;
 import org.example.categoryservice.Models.Restaurant;
 import org.example.categoryservice.Repository.MenuItemRepository;
 import org.example.categoryservice.Repository.RestaurantRepository;
+import org.example.categoryservice.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,5 +50,28 @@ public class MenuItemServiceImpl implements MenuService {
                 .map(menuItem -> new MenuItemDTO(menuItem.getId(), menuItem.getName(), menuItem.getDescription(), menuItem.getPrice(), menuItem.getRestaurant().getId()));
 
     }
+
+    @Override
+    public MenuItemDTO updateMenuItem(Long restaurantId, Long menuItemId, MenuItemDTO menuItemDTO) {
+        MenuItem menuItem = menuItemRepository.findById(menuItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found"));
+
+        if (!menuItem.getRestaurant().getId().equals(restaurantId)) {
+            throw new IllegalArgumentException("Menu item does not belong to the specified restaurant");
+        }
+
+     menuItem.updateDetails(menuItemDTO.getName(), menuItemDTO.getDescription(), menuItemDTO.getPrice());
+
+        menuItemRepository.save(menuItem);
+
+        return new MenuItemDTO(
+                menuItem.getId(),
+                menuItem.getName(),
+                menuItem.getDescription(),
+                menuItem.getPrice(),
+                menuItem.getRestaurant().getId()
+        );
+    }
+
 
 }

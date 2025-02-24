@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.categoryservice.Controller.MenuItemController;
 import org.example.categoryservice.Controller.RestaurantController;
 import org.example.categoryservice.DTO.MenuItemDTO;
-import org.example.categoryservice.Models.MenuItem;
 import org.example.categoryservice.Service.MenuItemServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,9 +16,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static org.awaitility.Awaitility.given;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -103,4 +100,46 @@ public class MenuItemsControllerTest {
                .andExpect(jsonPath("$.description").value("Delicious beef burger"))
                .andExpect(jsonPath("$.price").value(5.99));
    }
+
+    @Test
+    public void testCreateMenuItemOfRestaurant() throws Exception {
+        Long restaurantId = 1L;
+        MenuItemDTO menuItemDTO = new MenuItemDTO(null, "Burger", "Delicious beef burger", BigDecimal.valueOf(5.99), restaurantId);
+        MenuItemDTO createdMenuItemDTO = new MenuItemDTO(1L, "Burger", "Delicious beef burger", BigDecimal.valueOf(5.99), restaurantId);
+
+        BDDMockito.given(menuItemServiceImpl.createMenuItem(ArgumentMatchers.any(MenuItemDTO.class), eq(restaurantId))).willReturn(createdMenuItemDTO);
+
+        mockMvc.perform(MockMvcRequestBuilders.post("/restaurants/{restaurantId}/menu-items", restaurantId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(menuItemDTO)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.name").value("Burger"))
+                .andExpect(jsonPath("$.description").value("Delicious beef burger"))
+                .andExpect(jsonPath("$.price").value(5.99))
+                .andExpect(jsonPath("$.restaurantId").value(restaurantId));
+    }
+
+    @Test
+    public void testUpdateMenuItem() throws Exception {
+        Long restaurantId = 1L;
+        Long menuItemId = 10L;
+        MenuItemDTO menuItemDTO = new MenuItemDTO(menuItemId, "Burger", "Delicious beef burger", BigDecimal.valueOf(5.99), restaurantId);
+        MenuItemDTO updatedMenuItemDTO = new MenuItemDTO(menuItemId, "Burger", "Updated beef burger", BigDecimal.valueOf(6.99), restaurantId);
+
+        BDDMockito.given(menuItemServiceImpl.updateMenuItem(eq(restaurantId), eq(menuItemId), ArgumentMatchers.any(MenuItemDTO.class)))
+                .willReturn(updatedMenuItemDTO);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/restaurants/{restaurantId}/menu-items/{menuItemId}", restaurantId, menuItemId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(menuItemDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(menuItemId))
+                .andExpect(jsonPath("$.name").value("Burger"))
+                .andExpect(jsonPath("$.description").value("Updated beef burger"))
+                .andExpect(jsonPath("$.price").value(6.99))
+                .andExpect(jsonPath("$.restaurantId").value(restaurantId));
+    }
+
+
 }

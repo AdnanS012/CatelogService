@@ -31,4 +31,12 @@ public class MenuItem {
     public String getDescription() { return description; }
     public BigDecimal getPrice() { return price; }
     public Restaurant getRestaurant() { return restaurant; }
+
+public void updateDetails(String name,String description,BigDecimal price){
+        this.name=name;
+        this.description=description;
+        this.price=price;
+}
+
+
 }

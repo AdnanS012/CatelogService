@@ -5,10 +5,12 @@ import org.example.categoryservice.DTO.MenuItemDTO;
 import org.example.categoryservice.Service.MenuItemServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Validated
 @RestController
 @RequestMapping("/restaurants/{restaurantId}/menu-items")
 public class MenuItemController {
@@ -19,7 +21,7 @@ public class MenuItemController {
     }
 
     @PostMapping
-    public ResponseEntity<MenuItemDTO> createMenuItem(@PathVariable Long restaurantId, @RequestBody @Valid MenuItemDTO menuItemDTO) {
+    public ResponseEntity<MenuItemDTO> createMenuItem(@Valid @PathVariable Long restaurantId, @RequestBody @Valid MenuItemDTO menuItemDTO) {
         MenuItemDTO createdMenuItem = menuItemServiceImpl.createMenuItem(menuItemDTO, restaurantId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdMenuItem);
     }
@@ -35,6 +37,11 @@ public class MenuItemController {
         return menuItemServiceImpl.getMenuItemById(restaurantId,menuItemId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+    @PutMapping("/{menuItemId}")
+    public ResponseEntity<MenuItemDTO> updateMenuItem(@PathVariable Long restaurantId, @PathVariable Long menuItemId, @RequestBody @Valid MenuItemDTO menuItemDTO) {
+     MenuItemDTO updateMenuItem = menuItemServiceImpl.updateMenuItem(restaurantId, menuItemId, menuItemDTO);
+        return ResponseEntity.ok(updateMenuItem);
     }
 
 }
