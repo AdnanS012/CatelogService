@@ -2,6 +2,7 @@ package org.example.categoryservice.Controller;
 
 import jakarta.validation.Valid;
 import org.example.categoryservice.DTO.MenuItemDTO;
+import org.example.categoryservice.ResourceNotFoundException;
 import org.example.categoryservice.Service.MenuItemServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +43,16 @@ public class MenuItemController {
     public ResponseEntity<MenuItemDTO> updateMenuItem(@PathVariable Long restaurantId, @PathVariable Long menuItemId, @RequestBody @Valid MenuItemDTO menuItemDTO) {
      MenuItemDTO updateMenuItem = menuItemServiceImpl.updateMenuItem(restaurantId, menuItemId, menuItemDTO);
         return ResponseEntity.ok(updateMenuItem);
+    }
+
+    @DeleteMapping("/{menuItemId}")
+    public ResponseEntity<Void> deleteMenuItem(@PathVariable Long restaurantId, @PathVariable Long menuItemId) {
+       try{
+           menuItemServiceImpl.deleteMenuItem(restaurantId, menuItemId);
+           return ResponseEntity.noContent().build();
+       } catch(ResourceNotFoundException e){
+           return ResponseEntity.notFound().build();
+       }
     }
 
 }

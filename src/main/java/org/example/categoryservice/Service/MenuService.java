@@ -11,4 +11,5 @@ public interface MenuService {
     List<MenuItemDTO> getAllMenuItemsForRestaurant(Long restaurantId);
    Optional<MenuItemDTO> getMenuItemById(Long restaurantId, Long menuItemId);
     MenuItemDTO updateMenuItem(Long restaurantId, Long menuItemId, MenuItemDTO menuItemDTO);
+    void deleteMenuItem(Long restaurantId, Long menuItemId);
 }

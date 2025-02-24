@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -140,6 +143,30 @@ public class MenuItemsControllerTest {
                 .andExpect(jsonPath("$.price").value(6.99))
                 .andExpect(jsonPath("$.restaurantId").value(restaurantId));
     }
+
+    @Test
+    public void testDeleteMenuItemFromRestaurant() throws Exception {
+        Long restaurantId = 1L;
+        Long menuItemId = 10L;
+        doNothing().when(menuItemServiceImpl).deleteMenuItem(restaurantId, menuItemId);
+
+        mockMvc.perform(delete("/restaurants/{restaurantId}/menu-items/{menuItemId}", restaurantId, menuItemId))
+                .andExpect(status().isNoContent()); //Expect 204 no content
+
+    }
+
+    @Test
+    public void testDeleteNonExistentMenuItem() throws Exception {
+        Long restaurantId = 1L;
+        Long menuItemId = 999L; // Non-existent menu item
+
+        doThrow(new ResourceNotFoundException("Menu item not found"))
+                .when(menuItemServiceImpl).deleteMenuItem(restaurantId, menuItemId);
+
+        mockMvc.perform(delete("/restaurants/{restaurantId}/menu-items/{menuItemId}", restaurantId, menuItemId))
+                .andExpect(status().isNotFound()); // Expect HTTP 404 Not Found
+    }
+
 
 
 }

@@ -73,5 +73,17 @@ public class MenuItemServiceImpl implements MenuService {
         );
     }
 
+    @Override
+    public void deleteMenuItem(Long restaurantId, Long menuItemId) {
+        MenuItem menuItem = menuItemRepository.findById(menuItemId)
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found"));
+
+        if (!menuItem.getRestaurant().getId().equals(restaurantId)) {
+            throw new IllegalArgumentException("Menu item does not belong to the specified restaurant");
+        }
+
+        menuItemRepository.delete(menuItem);
+    }
+
 
 }
