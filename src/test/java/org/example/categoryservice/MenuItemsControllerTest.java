@@ -1,62 +1,94 @@
 package org.example.categoryservice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.example.categoryservice.Controller.MenuItemController;
 import org.example.categoryservice.Controller.RestaurantController;
+import org.example.categoryservice.DTO.MenuItemDTO;
+import org.example.categoryservice.Models.MenuItem;
+import org.example.categoryservice.Service.MenuItemServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-import static jdk.jfr.internal.jfc.model.Constraint.any;
 import static org.awaitility.Awaitility.given;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.springframework.mock.http.server.reactive.MockServerHttpRequest.post;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.jsonPath;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class MenuItemsControllerTest {
     private MockMvc mockMvc;
     @Mock
-    private MenuItemService menuItemService;
+    private MenuItemServiceImpl menuItemServiceImpl;
 
     @InjectMocks
     private RestaurantController restaurantController;
 
     @InjectMocks
-    private MenuItemsController menuItemsController;
+    private MenuItemController menuItemsController;
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     public void setup() {
         MockitoAnnotations.openMocks(this);
-        mockMvc = MockMvcBuilders.standaloneSetup(restaurantController).build();
+        mockMvc = MockMvcBuilders.standaloneSetup(menuItemsController).build();
     }
 
     @Test
     public void testCreateMenuItem() throws Exception {
         // Given: A menu item DTO
-        MenuItemDTO menuItemDTO = new MenuItemDTO(null, "Burger", "Delicious beef burger", BigDecimal.valueOf(5.99), 1L);
-        MenuItemDTO createdMenuItemDTO = new MenuItemDTO(1L, "Burger", "Delicious beef burger", BigDecimal.valueOf(5.99), 1L);
+        MenuItemDTO menuItemDTO = new MenuItemDTO(null, "Burger", "Delicious cheeseburger", BigDecimal.valueOf(5.99), 1L);
 
-        given(menuItemService.createMenuItem(any(MenuItemDTO.class), eq(1L))).willReturn(createdMenuItemDTO);
+        // The expected response (simulating the saved entity)
+        MenuItemDTO createdMenuItem = new MenuItemDTO(1L, "Burger", "Delicious cheeseburger", BigDecimal.valueOf(5.99), 1L);
 
-        // When & Then: Perform POST request and verify response
-        mockMvc.perform(post("/restaurants/1/menu-items")
+        // Mock the service call
+        BDDMockito.given(menuItemServiceImpl.createMenuItem(ArgumentMatchers.any(MenuItemDTO.class), eq(1L))).willReturn(createdMenuItem);
+
+        // When & Then: Mock the request and verify the response
+        mockMvc.perform(MockMvcRequestBuilders.post("/restaurants/1/menu-items") // Ensure restaurant ID is passed
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(menuItemDTO)))
-                .andExpect(status().isCreated()) // Expect HTTP 201 Created
+                        .content(objectMapper.writeValueAsString(menuItemDTO))) // Convert DTO to JSON
+                .andExpect(status().isCreated()) // HTTP 201
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("Burger"))
-                .andExpect(jsonPath("$.description").value("Delicious beef burger"))
+                .andExpect(jsonPath("$.description").value("Delicious cheeseburger"))
                 .andExpect(jsonPath("$.price").value(5.99))
-                .andExpect(jsonPath("$.restaurantId").value(1L));
+                .andExpect(jsonPath("$.restaurantId").value(1));
     }
+
+    @Test
+    public void testGetAllMenuItemsForRestaurant() throws Exception {
+        // Given: A restaurant with ID 1 and some menu items
+        Long restaurantId = 1L;
+        List<MenuItemDTO> menuItems = List.of(
+                new MenuItemDTO(1L, "Burger", "Delicious beef burger", BigDecimal.valueOf(5.99), restaurantId),
+                new MenuItemDTO(2L, "Pizza", "Cheesy pepperoni pizza", BigDecimal.valueOf(8.99), restaurantId)
+        );
+
+        BDDMockito.given(menuItemServiceImpl.getAllMenuItemsForRestaurant(restaurantId)).willReturn(menuItems);
+
+        // When & Then: Mock the request and verify response
+        mockMvc.perform(get("/restaurants/{restaurantId}/menu-items", restaurantId))
+                .andExpect(status().isOk()) // HTTP 200
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("Burger"))
+                .andExpect(jsonPath("$[1].id").value(2))
+                .andExpect(jsonPath("$[1].name").value("Pizza"));
+    }
+
+
+
 
 }
