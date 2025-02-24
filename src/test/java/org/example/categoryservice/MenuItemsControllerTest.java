@@ -88,7 +88,19 @@ public class MenuItemsControllerTest {
                 .andExpect(jsonPath("$[1].name").value("Pizza"));
     }
 
+   @Test
+   public void testGetMenuItemOfARestaurant() throws Exception {
+       Long restaurantId = 1L;
+       Long menuitemId = 10L;
+       MenuItemDTO menuItemDTO = new MenuItemDTO(menuitemId, "Burger", "Delicious beef burger", BigDecimal.valueOf(5.99), restaurantId);
 
+       BDDMockito.given(menuItemServiceImpl.getMenuItemById(restaurantId, menuitemId)).willReturn(Optional.of(menuItemDTO));
 
-
+       mockMvc.perform(get("/restaurants/{restaurantId}/menu-items/{menuItemId}", restaurantId, menuitemId))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.id").value(menuitemId))
+               .andExpect(jsonPath("$.name").value("Burger"))
+               .andExpect(jsonPath("$.description").value("Delicious beef burger"))
+               .andExpect(jsonPath("$.price").value(5.99));
+   }
 }

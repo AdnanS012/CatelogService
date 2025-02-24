@@ -8,6 +8,7 @@ import org.example.categoryservice.Repository.RestaurantRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,6 +40,14 @@ public class MenuItemServiceImpl implements MenuService {
         return menuItemRepository.findByRestaurantId(restaurantId).stream()
                 .map(MenuItemDTO::fromEntity) // Assuming a toDTO() method in MenuItem
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Optional<MenuItemDTO> getMenuItemById(Long restaurantId, Long menuItemId) {
+
+        return menuItemRepository.findByIdAndRestaurantId(menuItemId, restaurantId)
+                .map(menuItem -> new MenuItemDTO(menuItem.getId(), menuItem.getName(), menuItem.getDescription(), menuItem.getPrice(), menuItem.getRestaurant().getId()));
+
     }
 
 }

@@ -30,6 +30,11 @@ public class MenuItemController {
         return ResponseEntity.ok(menuItems);
     }
 
-
+    @GetMapping("/{menuItemId}")
+    public ResponseEntity<MenuItemDTO> getMenuItemById(@PathVariable Long restaurantId,@PathVariable Long menuItemId){
+        return menuItemServiceImpl.getMenuItemById(restaurantId,menuItemId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
 
 }
