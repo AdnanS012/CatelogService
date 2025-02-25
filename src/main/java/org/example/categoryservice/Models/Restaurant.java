@@ -4,7 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-
+import jakarta.validation.constraints.NotEmpty;
 
 
 @Entity
@@ -12,9 +12,13 @@ public class Restaurant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotEmpty(message = "Name cannot be empty")
     private String name;
+    @NotEmpty(message = "Location cannot be empty")
     private String location;
+    @NotEmpty(message = "Cuisine cannot be empty")
     private String cuisine;
+    @NotEmpty(message = "Contact cannot be empty")
     private String contact;
     private String description;
 

@@ -2,7 +2,6 @@ package org.example.categoryservice;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.categoryservice.Controller.MenuItemController;
-import org.example.categoryservice.Controller.RestaurantController;
 import org.example.categoryservice.DTO.MenuItemDTO;
 import org.example.categoryservice.Service.MenuItemServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,8 +29,7 @@ public class MenuItemsControllerTest {
     @Mock
     private MenuItemServiceImpl menuItemServiceImpl;
 
-    @InjectMocks
-    private RestaurantController restaurantController;
+
 
     @InjectMocks
     private MenuItemController menuItemsController;
