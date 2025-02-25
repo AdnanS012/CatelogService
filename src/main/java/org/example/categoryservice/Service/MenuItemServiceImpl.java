@@ -46,8 +46,10 @@ public class MenuItemServiceImpl implements MenuService {
     @Override
     public Optional<MenuItemDTO> getMenuItemById(Long restaurantId, Long menuItemId) {
 
-        return menuItemRepository.findByIdAndRestaurantId(menuItemId, restaurantId)
-                .map(menuItem -> new MenuItemDTO(menuItem.getId(), menuItem.getName(), menuItem.getDescription(), menuItem.getPrice(), menuItem.getRestaurant().getId()));
+        return Optional.ofNullable(menuItemRepository.findByIdAndRestaurantId(menuItemId, restaurantId)
+                .map(menuItem -> new MenuItemDTO(menuItem.getId(), menuItem.getName(), menuItem.getDescription(), menuItem.getPrice(), menuItem.getRestaurant().getId()))
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found")));
+
 
     }
 

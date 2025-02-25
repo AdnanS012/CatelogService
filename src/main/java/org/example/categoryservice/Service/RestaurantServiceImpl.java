@@ -3,6 +3,7 @@ package org.example.categoryservice.Service;
 import org.example.categoryservice.DTO.RestaurantDTO;
 import org.example.categoryservice.Models.Restaurant;
 import org.example.categoryservice.Repository.RestaurantRepository;
+import org.example.categoryservice.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,8 +26,10 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
     @Override
     public Optional<RestaurantDTO> getRestaurantById(Long id) {
-        return restaurantRepository.findById(id) //Safe handling
-                .map(this::convertToDTO);
+        return Optional.ofNullable(restaurantRepository.findById(id) //Safe handling
+                .map(this::convertToDTO)
+                .orElseThrow(() -> new ResourceNotFoundException("Menu item not found")));
+
     }
     private RestaurantDTO convertToDTO(Restaurant restaurant) {
         return new RestaurantDTO(
@@ -63,7 +66,10 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public void deleteRestaurant(Long id) {
-        restaurantRepository.deleteById(id);
+        Restaurant restaurant = restaurantRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id " + id));
+        restaurantRepository.delete(restaurant);
+
     }
 
 
